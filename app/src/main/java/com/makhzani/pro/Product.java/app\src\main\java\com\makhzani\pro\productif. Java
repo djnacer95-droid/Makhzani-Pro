@@ -1,0 +1,21 @@
+package com.makhzani.pro;
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
+public class Product {
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+    public String name;
+    public double buyPrice, sellPrice;
+    public int quantity, minQuantity;
+
+    public Product(String n, double b, double s, int q, int m) {
+        name = n;
+        buyPrice = b;
+        sellPrice = s;
+        quantity = q;
+        minQuantity = m;
+    }
+}
