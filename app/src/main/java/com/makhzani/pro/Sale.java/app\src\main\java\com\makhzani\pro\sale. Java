@@ -1,0 +1,20 @@
+package com.makhzani.pro;
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
+public class Sale {
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+    public long date;
+    public String customer;
+    public double total, profit;
+
+    public Sale(long d, String c, double t, double p) {
+        date = d;
+        customer = c;
+        total = t;
+        profit = p;
+    }
+}
