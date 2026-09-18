@@ -1,0 +1,221 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create MainActivity
+        run: |
+          mkdir -p app/src/main/java/com/makhzani/pro
+          cat > app/src/main/java/com/makhzani/pro/MainActivity.java <<'EOF'
+          package com.makhzani.pro;
+
+          import android.app.*;
+          import android.os.*;
+          import android.graphics.Color;
+          import android.view.*;
+          import android.widget.*;
+          import java.util.*;
+
+          public class MainActivity extends Activity {
+              LinearLayout box;
+              ArrayList<String> names = new ArrayList<>();
+              ArrayList<Integer> qty = new ArrayList<>();
+              ArrayList<Double> buy = new ArrayList<>();
+              ArrayList<Double> sell = new ArrayList<>();
+              double profit = 0, sales = 0;
+
+              TextView t(String s) {
+                  TextView v = new TextView(this);
+                  v.setText(s);
+                  v.setTextSize(18);
+                  v.setPadding(20,20,20,20);
+                  return v;
+              }
+
+              Button b(String s) {
+                  Button x = new Button(this);
+                  x.setText(s);
+                  return x;
+              }
+
+              public void onCreate(Bundle x) {
+                  super.onCreate(x);
+                  home();
+              }
+
+              void base(String title) {
+                  ScrollView sc = new ScrollView(this);
+                  box = new LinearLayout(this);
+                  box.setOrientation(LinearLayout.VERTICAL);
+                  box.setPadding(15,15,15,15);
+                  box.addView(t(title));
+                  sc.addView(box);
+                  setContentView(sc);
+              }
+
+              void home() {
+                  base("مخزني Pro");
+                  box.addView(t("برنامج بيع السلع والمخزون والربح"));
+
+                  Button p=b("📦 المنتجات والمخزون");
+                  p.setOnClickListener(v->products());
+                  box.addView(p);
+
+                  Button s=b("🧾 تسجيل بيع");
+                  s.setOnClickListener(v->sale());
+                  box.addView(s);
+
+                  Button h=b("📊 المبيعات والربح");
+                  h.setOnClickListener(v->history());
+                  box.addView(h);
+
+                  box.addView(t("إجمالي المبيعات: "+sales+" دج\nإجمالي الربح: "+profit+" دج"));
+              }
+
+              void products() {
+                  base("📦 المنتجات");
+
+                  EditText n=new EditText(this);
+                  n.setHint("اسم السلعة");
+                  box.addView(n);
+
+                  EditText bp=new EditText(this);
+                  bp.setHint("سعر الشراء");
+                  bp.setInputType(2);
+                  box.addView(bp);
+
+                  EditText sp=new EditText(this);
+                  sp.setHint("سعر البيع");
+                  sp.setInputType(2);
+                  box.addView(sp);
+
+                  EditText q=new EditText(this);
+                  q.setHint("الكمية");
+                  q.setInputType(2);
+                  box.addView(q);
+
+                  Button add=b("إضافة السلعة");
+                  add.setOnClickListener(v->{
+                      try {
+                          names.add(n.getText().toString());
+                          buy.add(Double.parseDouble(bp.getText().toString()));
+                          sell.add(Double.parseDouble(sp.getText().toString()));
+                          qty.add(Integer.parseInt(q.getText().toString()));
+                          products();
+                      } catch(Exception e) {
+                          Toast.makeText(this,"أدخل البيانات كاملة",Toast.LENGTH_SHORT).show();
+                      }
+                  });
+                  box.addView(add);
+
+                  for(int i=0;i<names.size();i++) {
+                      box.addView(t(names.get(i)+"\nشراء: "+buy.get(i)+" دج | بيع: "+sell.get(i)+" دج | الكمية: "+qty.get(i)));
+                  }
+
+                  Button back=b("رجوع");
+                  back.setOnClickListener(v->home());
+                  box.addView(back);
+              }
+
+              void sale() {
+                  base("🧾 تسجيل بيع");
+
+                  if(names.size()==0) {
+                      box.addView(t("لا توجد سلع. أضف سلعة أولاً."));
+                      Button back=b("المنتجات");
+                      back.setOnClickListener(v->products());
+                      box.addView(back);
+                      return;
+                  }
+
+                  Spinner choose=new Spinner(this);
+                  choose.setAdapter(new ArrayAdapter<String>(
+                      this,
+                      android.R.layout.simple_spinner_dropdown_item,
+                      names
+                  ));
+                  box.addView(choose);
+
+                  EditText q=new EditText(this);
+                  q.setHint("الكمية المباعة");
+                  q.setInputType(2);
+                  box.addView(q);
+
+                  Button ok=b("تأكيد البيع");
+                  ok.setOnClickListener(v->{
+                      try {
+                          int i=choose.getSelectedItemPosition();
+                          int amount=Integer.parseInt(q.getText().toString());
+
+                          if(amount<=0 || amount>qty.get(i)) {
+                              Toast.makeText(this,"الكمية غير كافية",Toast.LENGTH_SHORT).show();
+                              return;
+                          }
+
+                          double total=amount*sell.get(i);
+                          double pr=amount*(sell.get(i)-buy.get(i));
+
+                          qty.set(i,qty.get(i)-amount);
+                          sales+=total;
+                          profit+=pr;
+
+                          Toast.makeText(this,
+                              "تم البيع: "+total+" دج\nالربح: "+pr+" دج",
+                              Toast.LENGTH_LONG).show();
+
+                          home();
+
+                      } catch(Exception e) {
+                          Toast.makeText(this,"أدخل الكمية",Toast.LENGTH_SHORT).show();
+                      }
+                  });
+                  box.addView(ok);
+
+                  Button back=b("رجوع");
+                  back.setOnClickListener(v->home());
+                  box.addView(back);
+              }
+
+              void history() {
+                  base("📊 المبيعات والربح");
+                  box.addView(t(
+                      "إجمالي المبيعات: "+sales+" دج\n\n"+
+                      "إجمالي الربح: "+profit+" دج"
+                  ));
+
+                  Button back=b("رجوع");
+                  back.setOnClickListener(v->home());
+                  box.addView(back);
+              }
+          }
+          EOF
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Makhzani-Pro-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
