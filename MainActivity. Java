@@ -1,0 +1,122 @@
+package com.makhzani.pro;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.*;
+import android.view.View;
+import java.util.ArrayList;
+
+public class MainActivity extends Activity {
+
+    LinearLayout box;
+
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<Integer> qty = new ArrayList<>();
+    ArrayList<Double> buy = new ArrayList<>();
+    ArrayList<Double> sell = new ArrayList<>();
+
+    double sales = 0;
+    double profit = 0;
+
+    TextView text(String s) {
+        TextView t = new TextView(this);
+        t.setText(s);
+        t.setTextSize(18);
+        t.setPadding(20,20,20,20);
+        return t;
+    }
+
+    Button button(String s) {
+        Button b = new Button(this);
+        b.setText(s);
+        return b;
+    }
+
+    @Override
+    public void onCreate(Bundle b) {
+        super.onCreate(b);
+        home();
+    }
+
+    void base(String title) {
+        ScrollView scroll = new ScrollView(this);
+        box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(15,15,15,15);
+
+        box.addView(text(title));
+        scroll.addView(box);
+        setContentView(scroll);
+    }
+
+    void home() {
+        base("مخزني Pro");
+
+        box.addView(text(
+            "برنامج بيع السلع والمخزون والربح"
+        ));
+
+        Button products = button("📦 المنتجات والمخزون");
+        products.setOnClickListener(v -> products());
+        box.addView(products);
+
+        Button sale = button("🧾 تسجيل بيع");
+        sale.setOnClickListener(v -> sale());
+        box.addView(sale);
+
+        Button report = button("📊 المبيعات والربح");
+        report.setOnClickListener(v -> report());
+        box.addView(report);
+    }
+
+    void products() {
+        base("📦 المنتجات");
+
+        EditText name = new EditText(this);
+        name.setHint("اسم السلعة");
+        box.addView(name);
+
+        EditText buyPrice = new EditText(this);
+        buyPrice.setHint("سعر الشراء");
+        buyPrice.setInputType(2);
+        box.addView(buyPrice);
+
+        EditText sellPrice = new EditText(this);
+        sellPrice.setHint("سعر البيع");
+        sellPrice.setInputType(2);
+        box.addView(sellPrice);
+
+        EditText quantity = new EditText(this);
+        quantity.setHint("الكمية");
+        quantity.setInputType(2);
+        box.addView(quantity);
+
+        Button add = button("إضافة السلعة");
+
+        add.setOnClickListener(v -> {
+            try {
+                names.add(name.getText().toString());
+                buy.add(Double.parseDouble(
+                    buyPrice.getText().toString()
+                ));
+                sell.add(Double.parseDouble(
+                    sellPrice.getText().toString()
+                ));
+                qty.add(Integer.parseInt(
+                    quantity.getText().toString()
+                ));
+
+                products();
+
+            } catch(Exception e) {
+                Toast.makeText(
+                    this,
+                    "أدخل البيانات كاملة",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
+        box.addView(add);
+
+        for(int
